@@ -20,6 +20,9 @@ class main(AudiuX):
         self.actionConnectPLC.triggered.connect(self.connect_plc.exec)
         self.actionConnectDetector.triggered.connect(self.connect_detector.exec)
 
+    def update_info(self, *args):
+        print("\033[32m", " ".join(str(i) for i in args), "\033[0m")
+
 
 if __name__ == '__main__':
     args = parse()

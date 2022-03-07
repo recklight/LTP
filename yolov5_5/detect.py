@@ -178,6 +178,8 @@ def detect_main(parameter=None):
         save_dir = Path(increment_path(Path(parameter['save_dir']), exist_ok=opt.exist_ok))
         opt.weights = parameter['weights']
         opt.source = parameter['source']
+        opt.conf_thres = parameter['conf_thres']
+        opt.iou_thres = parameter['iou_thres']
         opt.save_dir = save_dir
         with torch.no_grad():
             detect(opt)
