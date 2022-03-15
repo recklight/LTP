@@ -1,16 +1,31 @@
-# This is a sample Python script.
+# -*- coding: utf-8 -*-
 
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+"""
+@ author: recklight
+@ contact:recognizer.light@gmail.com
+@ version: n
+@ license: n
+@ file: main.py
+"""
+
+import sys
+import argparse
+from ssRobotApp import ssRobotApp, QApplication
 
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
+def parse():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--reset', action='store_true', help="Reset GUI settings.")
+    args = parser.parse_args()
+    return args
 
 
-# Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    print_hi('PyCharm')
-
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+    # args = parse()
+    app = QApplication(sys.argv)
+    window = ssRobotApp()
+    # window.read_settings(reset=args.reset)
+    window.show()
+    app.exec_()
+    # window.write_settings()
+    sys.exit()
