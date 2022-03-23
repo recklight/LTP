@@ -456,8 +456,8 @@ def train(data_dict, hyp, opt, device, tb_writer=None):
 
 def train_main(paramater=None):
     parser = argparse.ArgumentParser()
-    parser.add_argument('--weights', type=str, default='weights/yolov5s.pt', help='initial weights PATH')
-    parser.add_argument('--cfg', type=str, default='', help='model.yaml PATH')
+    parser.add_argument('--weights', type=str, default='', help='initial weights PATH')
+    parser.add_argument('--cfg', type=str, default='yolov5x.yaml', help='model.yaml PATH')
     # parser.add_argument('--data', type=str, default='data/coco128.yaml', help='data.yaml PATH')
     parser.add_argument('--data', type=str, default='data/coco128.yaml', help='data.yaml PATH')
     parser.add_argument('--hyp', type=str, default='data/hyp.scratch.yaml', help='hyperparameters PATH')
