@@ -1,12 +1,17 @@
-#!/bin/bash
-# Download latest models from https://github.com/ultralytics/yolov5/releases
-# Usage:
-#    $ bash weights/download_weights.sh
+#!/bin/sh
 
-python - <<EOF
-from utils.google_utils import attempt_download
+wget_download() {
+  wget --load-cookies /tmp/cookies.txt \
+  "https://docs.google.com/uc?export=download&confirm=\
+  $(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate \
+  "https://drive.google.com/uc?export=download&id=$1" -O- | \
+  sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=$1" -O $2
+  rm -rf /tmp/cookies.txt
+}
 
-for x in ['s', 'm', 'l', 'x']:
-    attempt_download(f'yolov5{x}.pt')
+wget_download $1 $2
 
-EOF
+#wget https://github.com/ultralytics/yolov5/releases/download/v5.0/yolov5s.pt -O yolov5s.pt
+#wget https://github.com/ultralytics/yolov5/releases/download/v5.0/yolov5m.pt -O yolov5m.pt
+#wget https://github.com/ultralytics/yolov5/releases/download/v5.0/yolov5l.pt -O yolov5l.pt
+#wget https://github.com/ultralytics/yolov5/releases/download/v5.0/yolov5x.pt -O yolov5x.pt
