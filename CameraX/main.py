@@ -1,9 +1,8 @@
 import argparse
 import sys
 
-from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QApplication
-from CameraX import CameraX
+from CamX import CamX
 
 
 def parse():
@@ -13,7 +12,7 @@ def parse():
     return args
 
 
-class main(CameraX):
+class main(CamX):
     def __init__(self):
         super(main, self).__init__()
         self.actionConnectCamera.triggered.connect(self.cameraConnectDialog.exec)

@@ -17,41 +17,60 @@ def gsutil_getsize(url=''):
 
 
 def attempt_download(file, repo='ultralytics/yolov5'):
-    pass
+    model_dict = {'yolov5s.pt': '15HvL10tbrgiEIfu8ZYeg35ya7R4kfZmG',
+                  'yolov5m.pt': '1v1Ju8Kk9nKqXKs06_zirrL2sIFafIYzc',
+                  'yolov5l.pt': '15faQsp59wAV6FvvZq_8ho5BOPMAAzHmU'
+                  }
+    file = Path(str(file).strip().replace("'", ''))
+    if file.name in model_dict.keys() and not file.exists():
+        os.system(f"sh weights/download_weights.sh {model_dict[file.name]} {file}")
     # # Attempt file download if does not exist
-    # file = Path(str(file).strip().replace("'", '').lower())
+    # file = str(file).strip().replace("'", '').lower()
     #
-    # if not file.exists():
-    #     try:
-    #         response = requests.get(f'https://api.github.com/repos/{repo}/releases/latest').json()  # github api
-    #         assets = [x['name'] for x in response['assets']]  # release assets, i.e. ['yolov5s.pt', 'yolov5m.pt', ...]
-    #         tag = response['tag_name']  # i.e. 'v1.0'
-    #     except:  # fallback plan
-    #         assets = ['yolov5s.pt', 'yolov5m.pt', 'yolov5l.pt', 'yolov5x.pt']
-    #         tag = subprocess.check_output('git tag', shell=True).decode().split()[-1]
+    # models = ['yolov5s.pt', 'yolov5m.pt', 'yolov5l.pt', 'yolov5x.pt',
+    #           'sdd_yolov5s.pt', 'sdd_yolov5m.pt', 'sdd_yolov5l.pt', 'sdd_yolov5x.pt']  # available models
+    # d = {'yolov5s.pt': '1R5T6rIyy3lLwgFXNms8whc-387H0tMQO',
+    #      'yolov5m.pt': '1vobuEExpWQVpXExsJ2w-Mbf3HJjWkQJr',
+    #      'yolov5l.pt': '1hrlqD1Wdei7UT4OgT785BEk1JwnSvNEV',
+    #      'yolov5x.pt': '1mM8aZJlWTxOg7BZJvNUMrTnA2AbeCVzS',
+    #      'sdd_yolov5s.pt': '13tTDUQzFO37AVXE2_KAwuVhpZykuDEDt',
+    #      'sdd_yolov5m.pt': '1qRJ7oSY2qbcqa1v-0ZnnW_GvVIlqtzoX',
+    #      'sdd_yolov5l.pt': '1Z1bS64QxOyqIYkElW_ZoXW8v_JkxuycK',
+    #      'sdd_yolov5x.pt': '17XheuE4gyuDY-JDTcOKxTHE5PTDfYlAY'}
+    # if file in models and not Path(file).exists():
+    #     r = gdrive_download(id=d[file], file=file) if file in d else 1
+    #     if r == 0 and Path(file).exists() and os.path.getsize(file) > 1E6:  # check
+    #         return
+    # try:
+    #     response = requests.get(f'https://api.github.com/repos/{repo}/releases/latest').json()  # github api
+    #     assets = [x['name'] for x in response['assets']]  # release assets, i.e. ['yolov5s.pt', 'yolov5m.pt', ...]
+    #     tag = response['tag_name']  # i.e. 'v1.0'
+    # except:  # fallback plan
+    #     assets = ['yolov5s.pt', 'yolov5m.pt', 'yolov5l.pt', 'yolov5x.pt']
+    #     tag = subprocess.check_output('git tag', shell=True).decode().split()[-1]
     #
-    #     name = file.name
-    #     if name in assets:
-    #         msg = f'{file} missing, try downloading from https://github.com/{repo}/releases/'
-    #         redundant = False  # second download option
-    #         try:  # GitHub
-    #             url = f'https://github.com/{repo}/releases/download/{tag}/{name}'
-    #             print(f'Downloading {url} to {file}...')
-    #             torch.hub.download_url_to_file(url, file)
-    #             assert file.exists() and file.stat().st_size > 1E6  # check
-    #         except Exception as e:  # GCP
-    #             print(f'Download error: {e}')
-    #             assert redundant, 'No secondary mirror'
-    #             url = f'https://storage.googleapis.com/{repo}/ckpt/{name}'
-    #             print(f'Downloading {url} to {file}...')
-    #             os.system(f'curl -L {url} -o {file}')  # torch.hub.download_url_to_file(url, weights)
-    #         finally:
-    #             if not file.exists() or file.stat().st_size < 1E6:  # check
-    #                 # file.unlink(missing_ok=True)  # remove partial downloads
-    #                 os.remove(file) if os.path.exists(file) else None  # remove partial downloads
-    #                 print(f'ERROR: Download failure: {msg}')
-    #             print('')
-    #             return
+    # name = file.name
+    # if name in assets:
+    #     msg = f'{file} missing, try downloading from https://github.com/{repo}/releases/'
+    #     redundant = False  # second download option
+    #     try:  # GitHub
+    #         url = f'https://github.com/{repo}/releases/download/{tag}/{name}'
+    #         print(f'Downloading {url} to {file}...')
+    #         torch.hub.download_url_to_file(url, file)
+    #         assert file.exists() and file.stat().st_size > 1E6  # check
+    #     except Exception as e:  # GCP
+    #         print(f'Download error: {e}')
+    #         assert redundant, 'No secondary mirror'
+    #         url = f'https://storage.googleapis.com/{repo}/ckpt/{name}'
+    #         print(f'Downloading {url} to {file}...')
+    #         os.system(f'curl -L {url} -o {file}')  # torch.hub.download_url_to_file(url, weights)
+    #     finally:
+    #         if not file.exists() or file.stat().st_size < 1E6:  # check
+    #             # file.unlink(missing_ok=True)  # remove partial downloads
+    #             os.remove(file) if os.path.exists(file) else None  # remove partial downloads
+    #             print(f'ERROR: Download failure: {msg}')
+    #         print('')
+    #         return
 
 
 def gdrive_download(id='16TiPfZj7htmTyhntwcZyEEAejOUxuT6m', file='tmp.zip'):
@@ -60,8 +79,10 @@ def gdrive_download(id='16TiPfZj7htmTyhntwcZyEEAejOUxuT6m', file='tmp.zip'):
     file = Path(file)
     cookie = Path('cookie')  # gdrive cookie
     print(f'Downloading https://drive.google.com/uc?export=download&id={id} as {file}... ', end='')
-    file.unlink(missing_ok=True)  # remove existing file
-    cookie.unlink(missing_ok=True)  # remove existing cookie
+    if file.exists():
+        file.unlink()  # remove existing file
+    if cookie.exists():
+        cookie.unlink()  # remove existing cookie
 
     # Attempt file download
     out = "NUL" if platform.system() == "Windows" else "/dev/null"

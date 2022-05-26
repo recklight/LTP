@@ -27,13 +27,14 @@ from models.yolo import Model
 from utils.autoanchor import check_anchors
 from utils.datasets import create_dataloader
 from utils.general import labels_to_class_weights, increment_path, labels_to_image_weights, init_seeds, \
-    fitness, strip_optimizer, get_latest_run, check_dataset, check_file, check_git_status, check_img_size, \
+    strip_optimizer, get_latest_run, check_dataset, check_file, check_git_status, check_img_size, \
     check_requirements, print_mutation, set_logging, one_cycle, colorstr
 from utils.google_utils import attempt_download
 from utils.loss import ComputeLoss
 from utils.plots import plot_images, plot_labels, plot_results, plot_evolution
 from utils.torch_utils import ModelEMA, select_device, intersect_dicts, torch_distributed_zero_first, is_parallel
 from utils.wandb_logging.wandb_utils import WandbLogger, check_wandb_resume
+from yolov5_5.utils.metrics import fitness
 
 logger = logging.getLogger(__name__)
 
@@ -84,7 +85,7 @@ def train(data_dict, hyp, opt, device, tb_writer=None):
     pretrained = weights.endswith('.pt')
     if pretrained:
         # with torch_distributed_zero_first(rank):
-        #     attempt_download(weights)  # download if not found locally
+        attempt_download(weights)  # download if not found locally
         ckpt = torch.load(weights, map_location=device)  # load checkpoint
         model = Model(opt.cfg or ckpt['model'].yaml, ch=3, nc=nc, anchors=hyp.get('anchors')).to(device)  # create
         exclude = ['anchor'] if (opt.cfg or hyp.get('anchors')) and not opt.resume else []  # exclude keys
@@ -456,7 +457,7 @@ def train(data_dict, hyp, opt, device, tb_writer=None):
 
 def train_main(paramater=None):
     parser = argparse.ArgumentParser()
-    parser.add_argument('--weights', type=str, default='', help='initial weights PATH')
+    parser.add_argument('--weights', type=str, default='yolov5m.pt', help='initial weights PATH')
     parser.add_argument('--cfg', type=str, default='yolov5x.yaml', help='model.yaml PATH')
     # parser.add_argument('--data', type=str, default='data/coco128.yaml', help='data.yaml PATH')
     parser.add_argument('--data', type=str, default='data/coco128.yaml', help='data.yaml PATH')
@@ -496,6 +497,8 @@ def train_main(paramater=None):
     if paramater is not None:
         opt.epochs = paramater['epochs']
         opt.batch_size = paramater['batch_size']
+        opt.project = paramater['project_path']
+        opt.name = paramater['project_name']
         opt.hyp = paramater['hyp']
         opt.weights = paramater['weights']
 
