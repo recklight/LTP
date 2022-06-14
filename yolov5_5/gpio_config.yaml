@@ -1,0 +1,36 @@
+GPIO:
+  in:
+    # [腳位:int, 延遲時間:(int, float), 類別: str]
+    # 預設為下拉電阻
+    # 設定開關模式，使用 gpio_in = set_in_triggered() -> dict
+    # 返回 {gpio_in} 開關字典, 如預設範例你將得到
+    # gpio_in = {'start': threading.Event, 'stop': threading.Event}
+    # 在程式中，監聽gpio_in開關字典中的特定開關，如
+    # if gpio_in['start'].is_set(): ## 解釋:當類別為start的gpio in 腳位被觸發時, 將會進入此條件式
+    #   <--- 條件式內 --->
+
+    # 如要恢復開關，使用 gpio_in['start'].clear()
+    - [ 20, 2, 'start' ]
+    - [ 21, 2, 'stop' ]
+
+  out:
+    # [腳位: int, 延遲復歸時間: (int, float), 類別: str, 統計類別次數: int]
+    # 類別: 英文不區分大小寫(都當小寫)
+    # 腳位: 預設為高電位
+    # 使用 emit_out_signal(類別或類別列表): 此函式將計算輸入類別的次數, 達到統計類別次數後,
+    # 將對應腳位設定為低電位, 等待延遲時間, 恢復高電位, 恢復高電位後, 將會重新統計次數
+    - [ 23, 0.5, 'person', 20 ]
+    - [ 26, 0.5, 'NG', 30 ]
+
+############ detect_v105.py ############
+# input gpio ['start'] 觸發時, 開始判斷, 以統計特定類別出現次數,
+# 當次數達到預設統計類別次數時, 以類別觸發對應out gpio [類別]
+# 此例, input gpio ['start'] 觸發後, 監聽 [person] 類別之 out gpio 是否已經觸發過,
+# 如有則復歸 input gpio ['start'], 不再判斷, 等待下次 input gpio ['start'] 觸發
+
+############ detect_v106.py ############
+# input gpio ['start'] 觸發時, 開始判斷, 以統計特定類別出現次數,
+# 當次數達到預設統計類別次數時, 以類別觸發對應out gpio [類別]
+# 此例, input gpio ['start'] 觸發後, 連續判斷, 同時監聽 input gpio ['stop'] ,
+# 如 input gpio ['stop'] 觸發, 則復歸所有 input gpio, 不再判斷, 等待下次 input gpio ['start'] 觸發
+
