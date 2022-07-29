@@ -1,21 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import sys
-
-sys.path.append("./labelImg")
 import argparse
 import codecs
-import distutils.spawn
 import os.path
 import platform
-import re
-import sys
-import subprocess
 import shutil
+import sys
 import webbrowser as wb
 import qdarkstyle
 from functools import partial
-from collections import defaultdict
 
 try:
     from PyQt5.QtGui import *
@@ -33,6 +26,7 @@ except ImportError:
     from PyQt4.QtCore import *
 
 from libs.combobox import ComboBox
+from libs.default_label_combobox import DefaultLabelComboBox
 from libs.resources import *
 from libs.constants import *
 from libs.utils import *
@@ -104,7 +98,7 @@ class MainWindow(QMainWindow, WindowMixin):
         self.label_hist = []
         self.last_open_dir = None
         self.cur_img_idx = 0
-        self.img_count = 1
+        self.img_count = len(self.m_img_list)
 
         # Whether we need to save or not.
         self.dirty = False
@@ -115,6 +109,11 @@ class MainWindow(QMainWindow, WindowMixin):
 
         # Load predefined classes to the list
         self.load_predefined_classes(default_prefdef_class_file)
+
+        if self.label_hist:
+            self.default_label = self.label_hist[0]
+        else:
+            print("Not find:/data/predefined_classes.txt (optional)")
 
         # Main widgets and related state.
         self.label_dialog = LabelDialog(parent=self, list_item=self.label_hist)
@@ -129,10 +128,11 @@ class MainWindow(QMainWindow, WindowMixin):
         # Create a widget for using default label
         self.use_default_label_checkbox = QCheckBox(get_str('useDefaultLabel'))
         self.use_default_label_checkbox.setChecked(False)
-        self.default_label_text_line = QLineEdit()
+        self.default_label_combo_box = DefaultLabelComboBox(self,items=self.label_hist)
+
         use_default_label_qhbox_layout = QHBoxLayout()
         use_default_label_qhbox_layout.addWidget(self.use_default_label_checkbox)
-        use_default_label_qhbox_layout.addWidget(self.default_label_text_line)
+        use_default_label_qhbox_layout.addWidget(self.default_label_combo_box)
         use_default_label_container = QWidget()
         use_default_label_container.setLayout(use_default_label_qhbox_layout)
 
@@ -252,7 +252,7 @@ class MainWindow(QMainWindow, WindowMixin):
                 return '&CreateML', 'format_createml'
 
         save_format = action(get_format_meta(self.label_file_format)[0],
-                             self.change_format, 'Ctrl+',
+                             self.change_format, 'Ctrl+Y',
                              get_format_meta(self.label_file_format)[1],
                              get_str('changeSaveFormat'), enabled=True)
 
@@ -903,6 +903,9 @@ class MainWindow(QMainWindow, WindowMixin):
             else:
                 self.label_list.item(i).setCheckState(2)
 
+    def default_label_combo_selection_changed(self, index):
+        self.default_label=self.label_hist[index]
+
     def label_selection_changed(self):
         item = self.current_item()
         if item and self.canvas.editing():
@@ -928,7 +931,7 @@ class MainWindow(QMainWindow, WindowMixin):
 
         position MUST be in global coordinates.
         """
-        if not self.use_default_label_checkbox.isChecked() or not self.default_label_text_line.text():
+        if not self.use_default_label_checkbox.isChecked():
             if len(self.label_hist) > 0:
                 self.label_dialog = LabelDialog(
                     parent=self, list_item=self.label_hist)
@@ -940,7 +943,7 @@ class MainWindow(QMainWindow, WindowMixin):
                 text = self.label_dialog.pop_up(text=self.prev_label_text)
                 self.lastLabel = text
         else:
-            text = self.default_label_text_line.text()
+            text = self.default_label
 
         # Add Chris
         self.diffc_button.setChecked(False)
@@ -965,13 +968,15 @@ class MainWindow(QMainWindow, WindowMixin):
     def scroll_request(self, delta, orientation):
         units = - delta / (8 * 15)
         bar = self.scroll_bars[orientation]
-        bar.setValue(bar.value() + bar.singleStep() * units)
+        bar.setValue(int(bar.value() + bar.singleStep() * units))
 
     def set_zoom(self, value):
         self.actions.fitWidth.setChecked(False)
         self.actions.fitWindow.setChecked(False)
         self.zoom_mode = self.MANUAL_ZOOM
-        self.zoom_widget.setValue(value)
+        # Arithmetic on scaling factor often results in float
+        # Convert to int to avoid type errors
+        self.zoom_widget.setValue(int(value))
 
     def add_zoom(self, increment=10):
         self.set_zoom(self.zoom_widget.value() + increment)
@@ -1012,7 +1017,7 @@ class MainWindow(QMainWindow, WindowMixin):
         move_y = min(max(move_y, 0), 1)
 
         # zoom in
-        units = delta / (8 * 15)
+        units = delta // (8 * 15)
         scale = 10
         self.add_zoom(scale * units)
 
@@ -1022,8 +1027,8 @@ class MainWindow(QMainWindow, WindowMixin):
         d_v_bar_max = v_bar.maximum() - v_bar_max
 
         # get the new scrollbar values
-        new_h_bar_value = h_bar.value() + move_x * d_h_bar_max
-        new_v_bar_value = v_bar.value() + move_y * d_v_bar_max
+        new_h_bar_value = int(h_bar.value() + move_x * d_h_bar_max)
+        new_v_bar_value = int(v_bar.value() + move_y * d_v_bar_max)
 
         h_bar.setValue(new_h_bar_value)
         v_bar.setValue(new_v_bar_value)
@@ -1050,7 +1055,10 @@ class MainWindow(QMainWindow, WindowMixin):
         self.canvas.setEnabled(False)
         if file_path is None:
             file_path = self.settings.get(SETTING_FILENAME)
-
+        #Deselect shape when loading new file
+        if self.canvas.selected_shape:
+            self.canvas.selected_shape.selected = False
+            self.canvas.selected_shape = None
         # Make sure that filePath is a regular python string, rather than QString
         file_path = ustr(file_path)
 
@@ -1351,7 +1359,7 @@ class MainWindow(QMainWindow, WindowMixin):
                 self.load_file(filename)
 
     def open_next_image(self, _value=False):
-        # Proceeding prev image without dialog if having any label
+        # Proceeding next image without dialog if having any label
         if self.auto_saving.isChecked():
             if self.default_save_dir is not None:
                 if self.dirty is True:
@@ -1364,6 +1372,9 @@ class MainWindow(QMainWindow, WindowMixin):
             return
 
         if self.img_count <= 0:
+            return
+        
+        if not self.m_img_list:
             return
 
         filename = None
@@ -1384,7 +1395,7 @@ class MainWindow(QMainWindow, WindowMixin):
         path = os.path.dirname(ustr(self.file_path)) if self.file_path else '.'
         formats = ['*.%s' % fmt.data().decode("ascii").lower() for fmt in QImageReader.supportedImageFormats()]
         filters = "Image & Label files (%s)" % ' '.join(formats + ['*%s' % LabelFile.suffix])
-        filename = QFileDialog.getOpenFileName(self, '%s - Choose Image or Label file' % __appname__, path, filters)
+        filename,_ = QFileDialog.getOpenFileName(self, '%s - Choose Image or Label file' % __appname__, path, filters)
         if filename:
             if isinstance(filename, (tuple, list)):
                 filename = filename[0]
@@ -1424,7 +1435,7 @@ class MainWindow(QMainWindow, WindowMixin):
         if dlg.exec_():
             full_file_path = ustr(dlg.selectedFiles()[0])
             if remove_ext:
-                return os.path.splitext(full_file_path)[0]  # Return file PATH without the extension.
+                return os.path.splitext(full_file_path)[0]  # Return file path without the extension.
             else:
                 return full_file_path
         return ''
@@ -1447,12 +1458,16 @@ class MainWindow(QMainWindow, WindowMixin):
     def delete_image(self):
         delete_path = self.file_path
         if delete_path is not None:
-            self.open_next_image()
-            self.cur_img_idx -= 1
-            self.img_count -= 1
+            idx = self.cur_img_idx
             if os.path.exists(delete_path):
                 os.remove(delete_path)
             self.import_dir_images(self.last_open_dir)
+            if self.img_count > 0:
+                self.cur_img_idx = min(idx, self.img_count - 1)
+                filename = self.m_img_list[self.cur_img_idx]
+                self.load_file(filename)
+            else:
+                self.close_file()
 
     def reset_all(self):
         self.settings.reset()
@@ -1519,6 +1534,9 @@ class MainWindow(QMainWindow, WindowMixin):
             self.set_dirty()
 
     def copy_shape(self):
+        if self.canvas.selected_shape is None:
+            # True if one accidentally touches the left mouse button before releasing
+            return
         self.canvas.end_move(copy=True)
         self.add_label(self.canvas.selected_shape)
         self.set_dirty()
@@ -1603,15 +1621,17 @@ def read(filename, default=None):
         return default
 
 
-def get_main_app(argv=[]):
+def get_main_app(argv=None):
     """
     Standard boilerplate Qt application code.
     Do everything but app.exec_() -- so that we can test the application in one thread
     """
+    if not argv:
+        argv = []
     app = QApplication(argv)
+    app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
     app.setApplicationName(__appname__)
     app.setWindowIcon(new_icon("app"))
-    app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
     # Tzutalin 201705+: Accept extra agruments to change predefined class file
     argparser = argparse.ArgumentParser()
     argparser.add_argument("image_dir", nargs="?")
@@ -1630,7 +1650,6 @@ def get_main_app(argv=[]):
                      args.class_file,
                      args.save_dir)
     win.show()
-    # win.showMaximized()
     return app, win
 
 

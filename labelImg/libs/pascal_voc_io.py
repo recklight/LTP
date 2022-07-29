@@ -55,7 +55,7 @@ class PascalVocWriter:
         filename.text = self.filename
 
         if self.local_img_path is not None:
-            local_img_path = SubElement(top, 'PATH')
+            local_img_path = SubElement(top, 'path')
             local_img_path.text = self.local_img_path
 
         source = SubElement(top, 'source')

@@ -31,7 +31,7 @@ class Canvas(QWidget):
 
     CREATE, EDIT = list(range(2))
 
-    epsilon = 11.0
+    epsilon = 24.0
 
     def __init__(self, *args, **kwargs):
         super(Canvas, self).__init__(*args, **kwargs)
@@ -97,10 +97,11 @@ class Canvas(QWidget):
         self.prev_point = QPointF()
         self.repaint()
 
-    def un_highlight(self):
-        if self.h_shape:
-            self.h_shape.highlight_clear()
-        self.h_vertex = self.h_shape = None
+    def un_highlight(self, shape=None):
+        if shape == None or shape == self.h_shape:
+            if self.h_shape:
+                self.h_shape.highlight_clear()
+            self.h_vertex = self.h_shape = None
 
     def selected_vertex(self):
         return self.h_vertex is not None
@@ -178,11 +179,27 @@ class Canvas(QWidget):
                 self.bounded_move_vertex(pos)
                 self.shapeMoved.emit()
                 self.repaint()
+
+                # Display annotation width and height while moving vertex
+                point1 = self.h_shape[1]
+                point3 = self.h_shape[3]
+                current_width = abs(point1.x() - point3.x())
+                current_height = abs(point1.y() - point3.y())
+                self.parent().window().label_coordinates.setText(
+                        'Width: %d, Height: %d / X: %d; Y: %d' % (current_width, current_height, pos.x(), pos.y()))
             elif self.selected_shape and self.prev_point:
                 self.override_cursor(CURSOR_MOVE)
                 self.bounded_move_shape(self.selected_shape, pos)
                 self.shapeMoved.emit()
                 self.repaint()
+
+                # Display annotation width and height while moving shape
+                point1 = self.selected_shape[1]
+                point3 = self.selected_shape[3]
+                current_width = abs(point1.x() - point3.x())
+                current_height = abs(point1.y() - point3.y())
+                self.parent().window().label_coordinates.setText(
+                        'Width: %d, Height: %d / X: %d; Y: %d' % (current_width, current_height, pos.x(), pos.y()))
             else:
                 # pan
                 delta_x = pos.x() - self.pan_initial_pos.x()
@@ -220,6 +237,14 @@ class Canvas(QWidget):
                 self.setStatusTip(self.toolTip())
                 self.override_cursor(CURSOR_GRAB)
                 self.update()
+
+                # Display annotation width and height while hovering inside
+                point1 = self.h_shape[1]
+                point3 = self.h_shape[3]
+                current_width = abs(point1.x() - point3.x())
+                current_height = abs(point1.y() - point3.y())
+                self.parent().window().label_coordinates.setText(
+                        'Width: %d, Height: %d / X: %d; Y: %d' % (current_width, current_height, pos.x(), pos.y()))
                 break
         else:  # Nothing found, clear highlights, reset state.
             if self.h_shape:
@@ -439,6 +464,7 @@ class Canvas(QWidget):
     def delete_selected(self):
         if self.selected_shape:
             shape = self.selected_shape
+            self.un_highlight(shape)
             self.shapes.remove(self.selected_shape)
             self.selected_shape = None
             self.update()
@@ -499,12 +525,12 @@ class Canvas(QWidget):
             p.setPen(self.drawing_rect_color)
             brush = QBrush(Qt.BDiagPattern)
             p.setBrush(brush)
-            p.drawRect(left_top.x(), left_top.y(), rect_width, rect_height)
+            p.drawRect(int(left_top.x()), int(left_top.y()), int(rect_width), int(rect_height))
 
         if self.drawing() and not self.prev_point.isNull() and not self.out_of_pixmap(self.prev_point):
             p.setPen(QColor(0, 0, 0))
-            p.drawLine(self.prev_point.x(), 0, self.prev_point.x(), self.pixmap.height())
-            p.drawLine(0, self.prev_point.y(), self.pixmap.width(), self.prev_point.y())
+            p.drawLine(int(self.prev_point.x()), 0, int(self.prev_point.x()), int(self.pixmap.height()))
+            p.drawLine(0, int(self.prev_point.y()), int(self.pixmap.width()), int(self.prev_point.y()))
 
         self.setAutoFillBackground(True)
         if self.verified:

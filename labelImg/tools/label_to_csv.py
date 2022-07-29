@@ -135,7 +135,7 @@ if __name__ == "__main__":
     arg_p.add_argument("-p", "--prefix",
                        required=True,
                        type=str,
-                       help="Bucket of the cloud storage PATH")
+                       help="Bucket of the cloud storage path")
     arg_p.add_argument("-l", "--location",
                        type=str,
                        required=True,
@@ -151,7 +151,7 @@ if __name__ == "__main__":
     arg_p.add_argument("-c", "--classes",
                        type=str,
                        default=os.path.join("..", "data", "predefined_classes.txt"),
-                       help="Label classes PATH")
+                       help="Label classes path")
     args = vars(arg_p.parse_args())
 
     # Class labels
@@ -207,7 +207,7 @@ if __name__ == "__main__":
 
     # Write to the result csv
     res_csv = pd.DataFrame(res,
-                           columns=["set", "PATH", "label",
+                           columns=["set", "path", "label",
                                     "x_min", "y_min",
                                     "x_max", "y_min",
                                     "x_max", "y_max",

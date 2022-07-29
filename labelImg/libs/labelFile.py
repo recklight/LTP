@@ -6,15 +6,13 @@ try:
 except ImportError:
     from PyQt4.QtGui import QImage
 
-from base64 import b64encode, b64decode
-from libs.pascal_voc_io import PascalVocWriter
-from libs.yolo_io import YOLOWriter
-from libs.pascal_voc_io import XML_EXT
-from libs.create_ml_io import CreateMLWriter
-from libs.create_ml_io import JSON_EXT
-from enum import Enum
 import os.path
-import sys
+from enum import Enum
+
+from libs.create_ml_io import CreateMLWriter
+from libs.pascal_voc_io import PascalVocWriter
+from libs.pascal_voc_io import XML_EXT
+from libs.yolo_io import YOLOWriter
 
 
 class LabelFileFormat(Enum):
@@ -57,8 +55,8 @@ class LabelFile(object):
         img_folder_path = os.path.dirname(image_path)
         img_folder_name = os.path.split(img_folder_path)[-1]
         img_file_name = os.path.basename(image_path)
-        # imgFileNameWithoutExt = os.PATH.splitext(img_file_name)[0]
-        # Read from file PATH because self.imageData might be empty if saving to
+        # imgFileNameWithoutExt = os.path.splitext(img_file_name)[0]
+        # Read from file path because self.imageData might be empty if saving to
         # Pascal format
         if isinstance(image_data, QImage):
             image = image_data
@@ -87,8 +85,8 @@ class LabelFile(object):
         img_folder_path = os.path.dirname(image_path)
         img_folder_name = os.path.split(img_folder_path)[-1]
         img_file_name = os.path.basename(image_path)
-        # imgFileNameWithoutExt = os.PATH.splitext(img_file_name)[0]
-        # Read from file PATH because self.imageData might be empty if saving to
+        # imgFileNameWithoutExt = os.path.splitext(img_file_name)[0]
+        # Read from file path because self.imageData might be empty if saving to
         # Pascal format
         if isinstance(image_data, QImage):
             image = image_data
